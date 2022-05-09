@@ -25,29 +25,26 @@ struct pixel_rgb {
     uint8_t blue;
 };
 
-// bw pixel
-typedef uint8_t pixel_bw;
+// struct channel_im {
+//     uint8_t *red;
+//     uint8_t *green;
+//     uint8_t *blue;
+// };
 
-struct compressed_rgb {
-    float red;
-    float green;
-    float blue;
+
+struct compressed_im {
+    int16_t *red;
+    int16_t *green;
+    int16_t *blue;
 };
 
-
 typedef struct pixel_rgb* image_rgb;
-typedef struct pixel_bw* image_bw;
 
-
-typedef struct compressed_pix_rgb* compressed_image_rgb;
-typedef struct compressed_pix_bw* compressed_image_bw;
 
 /*
 * read ppm file and return pixel array
 */
-int load_ppm_bw(char *file_name, image_bw *im, int *rows, int *cols);
 int load_ppm_rgb(char *file_name, image_rgb *im, int *rows, int *cols);
-
 
 /*
 * write ppm file from pixel array
@@ -55,14 +52,17 @@ int load_ppm_rgb(char *file_name, image_rgb *im, int *rows, int *cols);
 int write_ppm_rgb(char *file_name, image_rgb *im, int rows, int cols);
 
 /*
-* read in ppm at input_path and output compressed jhpeg format at output_path with float compression specifying the proportion of frequencies to remove
+* read ppm file and return pixel array
 */
-int compress_ppm_bw(char *input_path, char *output_path, float compression);
-int compress_ppm_rgb(char *input_path, char *output_path, float compression);
+int load_jhpeg_rgb(char *file_name, struct compressed_im *im, int *rows, int *cols, uint8_t *compression);
+
+/*
+* read in ppm at input_path and output compressed jhpeg format at output_path
+* with float compression specifying the proportion of frequencies to remove
+*/
+void compress_ppm(char *input_path, char *output_path, uint8_t compression);
 
 /*
 * read in compressed jhpeg at input_path, write ppm at output_path
 */
-int decompress_jhpeg_bw(char *input_path, char *output_path);
-int decompress_jhpeg_rgb(char *input_path, char *output_path);
-
+void decompress_jhpeg(char *input_path, char *output_path);
