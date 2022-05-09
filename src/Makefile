@@ -1,4 +1,4 @@
-all: debug
+all: jhpeg
 
 jhpeg: jhpeg.c jhpeg.h
 	gcc -lm -lfftw3 -lfftw3f jhpeg.c -o jhpeg 

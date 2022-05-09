@@ -47,7 +47,7 @@ int load_ppm_rgb(char *file_name, image_rgb *im, int *rows, int *cols)
     fscanf(file, "%2s", type);
     type[2] = '\0';
     if(strcmp(type, "P6") != 0) {
-        printf(stderr, "This file is not of type P6");
+        fprintf(stderr, "This file is not of type P6");
         return -1;
     }
 
@@ -77,7 +77,7 @@ int write_ppm_rgb(char *file_name, image_rgb *im, int rows, int cols) {
     FILE *file = fopen(file_name, "wb");
 
     if (file == NULL) {
-        printf(stderr, "Could not open file %s for writing", file_name);
+        fprintf(stderr, "Could not open file %s for writing", file_name);
         return -1;
     }
 
@@ -283,7 +283,7 @@ void dct_decompress(struct compressed_im *compressed, image_rgb *im, int rows, i
 
 
 void usage() {
-        printf("Usage:\tjhpeg -c INPUT OUTPUT COMPRESSION\tInput ppm binary encoding and output in jhpeg compression format\n\tjhpeg -d INPUT OUTPUT\t\t\tInput jhpeg compression file, output decompressed ppm\n");
+        printf("Usage:\tjhpeg -c INPUT OUTPUT COMPRESSION\tInput ppm binary encoding and output in jhpeg compression format\n\tjhpeg -d INPUT OUTPUT\t\t\tInput jhpeg compression file, output decompressed ppm\n\n\tCOMPRESSION is an integer 0-7 that specifies the level of rank reduction we apply to the DCT outputs. 0 is the lowest (this will actually augment the file size) while 7 is the highest, resulting in 1/32 the original size.\n");
 }
 
 void delete_image(image_rgb *im) {

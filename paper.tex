@@ -1,10 +1,21 @@
 \documentclass[12pt,technote]{IEEEtran}
 \usepackage{cite}
 \usepackage{amsmath}
-\usepackage[hidelinks]{hyperref}
+\usepackage{hyperref}
 \usepackage{bookmark}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdfpagemode=FullScreen,
+}
 
 \author{Henry Pick, MATH189J}
 \title{Algebraic Signal Processing Theory in Image Processing}
@@ -12,7 +23,7 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-    In this paper, we explore constructs in image processing through the work of Markus P\"uschel on algebraic signal processing theory. His main objective was to introduce well-established concepts in signal processing in terms of a comprehensive algebraic theory. Here, we do much of the same, in fact a significant portion of this paper is devoted to reviewing essential ideas in his paper. We draw connections between abstract algebra and representation theory and the core concepts learned in many systems engineering classes. In my own effort to make this work original, I will explore several applied cases not covered in P\"uschel's work. As of now, my goal is to look at image compression techniques that use spectral decomposition
+    In this paper, we explore constructs in image processing through the work of Markus P\"uschel on algebraic signal processing theory. His main objective was to introduce well-established concepts in signal processing in terms of a comprehensive algebraic theory. Here, we do much of the same, in fact a significant portion of this paper is devoted to reviewing essential ideas in his paper. We draw connections between abstract algebra and representation theory and the core concepts learned in many systems engineering classes. In my own effort to make this work original, I will explore several applied cases not covered in P\"uschel's work and design an image compression pipeline that makes use of several of P\"uschel's discussion points.
 \end{abstract}
 \section{Introduction}
 In nearly all fields of the applied sciences, we interact with the broad definition of ``signal processing''. It is a term traditionally used in electrical engineering but has now found use in a wide range of other fields including image processing, wireless communication, financial analysis, and machine learning. 
@@ -88,6 +99,7 @@ Every signal model that has the shift invariance property has a commutative filt
 Many times in engineering we encounter examples where a transformation may not transform to the same algebra and may not be invertible. For example, the process of downsampling a signal (commonly referred to as applying a decimating filter) applies a transformation that reduces the number of samples in a vector. This can be thought of as applying a filter with a large null space to a signal.
 
 \section{Practical Example: Spectral Image Compression}
+The accompanying source code for this portion can be found \href{https://github.com/henry-2025/math189-spectral-compression}{here}.
 Data compression is a large subfield of information theory that involves the process of encoding information to use fewer bits than an original representation. Data compression usually comes at the expense of additional computation, which is why the development of efficient algorithms to compress data is a central focus of this field. Compressing a signal into its irreducible representations is one technique that is commonly used to compress digital data of many formats such as audio or images. In this section we look at defining a signal model for digital image data and then develop efficient transforms to represent images in a 
 
 \subsection{Choosing an Encoding}
@@ -96,12 +108,26 @@ One family of encodings that stands out is the Netbpbm format, which encodes an 
 
 \subsection{Signal Model}
 
-\subsection{}
 \subsection{Demonstration}
 We first take an image and convert it into its uncompressed form, in this example, I have taken the following image and converted it into binary ppm:
-\begin{center}
-    \includegraphics[width=2in]{figures/lion.jpg}
-\end{center}
+\begin{figure}
+    \centering
+    \begin{subfigure}[m]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/lion_compressed.jpg}
+        \caption{A high-resolution image with 75\% compression applied}
+        \label{fig:lion}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/b_compressed.jpg}
+        \caption{A lower-resolution image with ``sharp'' features. Artifacts in the 75\% compression are more evident.}
+        \label{fig:letter_b}
+    \end{subfigure}
+    \label{fig:compression_outputs}
+    \caption{Two different outputs of the compression algorithm that demonstrate its performance.}
+\end{figure}
 \bibliographystyle{plain}
 \bibliography{paper}
 \end{document}
