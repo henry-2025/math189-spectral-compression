@@ -1,4 +1,6 @@
 all: compress
 
-compress: compress.c
-	gcc compress.c -o compress
+compress: jhpeg.c jhpeg.h
+	gcc -lm -lfftw3 -lfftw3f jhpeg.c -o jhpeg 
+debug: jhpeg.c jhpeg.h
+	gcc -g -lm -lfftw3 -lfftw3f jhpeg.c -o jhpeg

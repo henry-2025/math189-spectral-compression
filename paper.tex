@@ -4,6 +4,7 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{bookmark}
 \usepackage{amssymb}
+\usepackage{graphicx}
 
 \author{Henry Pick, MATH189J}
 \title{Algebraic Signal Processing Theory in Image Processing}
@@ -14,21 +15,62 @@
     In this paper, we explore constructs in image processing through the work of Markus P\"uschel on algebraic signal processing theory. His main objective was to introduce well-established concepts in signal processing in terms of a comprehensive algebraic theory. Here, we do much of the same, in fact a significant portion of this paper is devoted to reviewing essential ideas in his paper. We draw connections between abstract algebra and representation theory and the core concepts learned in many systems engineering classes. In my own effort to make this work original, I will explore several applied cases not covered in P\"uschel's work. As of now, my goal is to look at image compression techniques that use spectral decomposition
 \end{abstract}
 \section{Introduction}
-In nearly all fields of the applied sciences, we encounter a broad field called ``signal processing''. The term was traditionally used in electrical engineering but has now found use in a wide range of other fields including image processing, wireless communication, financial analysis, and machine learning. 
+In nearly all fields of the applied sciences, we interact with the broad definition of ``signal processing''. It is a term traditionally used in electrical engineering but has now found use in a wide range of other fields including image processing, wireless communication, financial analysis, and machine learning. 
 
-In the broadest sense, signal processing deals with functions defined on sets, often times countable sets in the context of digital computing. We then have a set of functions, commonly referred to as ``filters'' that transform these signals. In this paper, we focus on linear signal processing, which means that this set of functions operates on signals \textit{linearly}. That is, given a transformation $A$, signals $x$ and $y$, and scalar multiples $r_1$ and $r_2$ it holds that $A(r_1x + r_2y) = r_1A(x) + r_2A(y)$. 
+In the broadest sense, signal processing deals with functions defined on sets, often times countable sets in the context of digital computing. We also have a set of functions, commonly referred to as ``filters'' that transform these signals. In this paper, we focus on linear signal processing, which means that this set of functions operates on signals \textit{linearly}. That is, given a transformation $A$, signals $x$ and $y$, and scalar multiples $r_1$ and $r_2$ it holds that $A(r_1x + r_2y) = r_1A(x) + r_2A(y)$, which is still a signal.
 
-To one with experience in one of the fields of signal processing, reading this last sentence should have been fairly straightforward, drawing on some assumptions. One reading this in the context of processing something like software defined radio (SDR) signals might have assumed that $x$ and $y$ live in the vector space $\mathbb{C}^n$ over the field $\mathbb{C}$ and that the expression $r_1x + r_2y$ is simply the vector sum of $x$ and $y$ scaled by $r_1$ and $r_2$. Reading this last sentence from an abstract algebra perspective should have seemed slightly awkward, however. Since we have not given an algebraic basis for these objects $A, x, y, r_1,$ and $r_2$, we have no conception of how these operations between objects are defined, how we might represent these objects linearly, and what it means for $A$ to operate on a signal. The instinct of the mathematician is to establish a comprehensive theory that encompasses all of signal processing and that is exactly what Markus P\"uschel has done in his work on algebraic signal processing theory\cite{AlgebraicSignalProcessing2006}.
+To one with experience in one of the fields of signal processing, reading this last sentence should have been fairly straightforward, drawing on some assumptions. If one had contextualized this as the processing of complex digital sensor data, they might have assumed that $x$ and $y$ live in the vector space $\mathbb{C}^n$ over the field $\mathbb{C}$ and that the expression $r_1x + r_2y$ is simply the vector sum of $x$ and $y$ scaled by $r_1$ and $r_2$. Reading this last sentence from an abstract algebra perspective should have seemed slightly awkward, however. Since we have not given an algebraic foundation for these objects $A, x, y, r_1,$ and $r_2$, we have no conception of how the interact with one another, how we might represent these objects linearly, and what a signal generally represents. The instinct of the mathematician is to establish a comprehensive theory that characterizes features common to all signal processing contexts. This is exactly what Markus P\"uschel has done in his work on algebraic signal processing theory\cite{AlgebraicSignalProcessing2006}.
 
-One might question the practical value of an algebraic exploration of an already well-established theory, in this we find many justifications. For example, an engineer who has significant experience in one field of signal processing will find a natural means of recognizing parallels in a totally different context. Furthermore, we find that certain algorithms that seem arbitrary in a standard perspective fall naturally out of this new theory. We will see this in a practical application of our learnings.%todo: reword this last paragraph
+One might question the practical value of an algebraic exploration of already well-established science. In this inquiry, we find many justifications that apply far beyond the mathematics alone. For example, an engineer who has significant experience in one field of signal processing may find a natural means of recognizing parallels in an entirely different field. It also becomes clear that several tasks in processing research that are seemingly the product of ingenious creativity are actually quite procedural. The design of fast transform algorithms, for example, can be as simple as observing the symmetry structure of an underlying signal module.
+
+The structure of this paper will first explore some of the foundational concepts introduced in the P\"uschel paper, which is primarily an expository section. In this section, we also consider some ideas that were not addressed in this work and potential extensions for P\"uschel's signal processing theory. We then move on to a practical application of constructing a signal model for images and a fast transform to be used in an image compression program.
 \section{From First Principles}
+In standard signal processing theory, signals live in a vector space like $\mathbb{C}^n$ over the base field, which gives the direct operations of signal addition and ``scalar multiplication''. This vector space structure also endows us with several other notions like dimension, basis, linear mappings and subspaces. We then encounter objects called filters, linear operators that act on signals to produce new signals. The operation of a filter on a signal is a different operation than the sum of two signals. We use the multiplication operation to represent this action of a filter on a signal
+\begin{equation*}
+    \text{filter}\cdot\text{signal} = \text{signal}
+\end{equation*}
+filtering also obeys the laws of distributivity
+\begin{align*}
+    &\text{filter}\cdot (\text{signal} + \text{signal}) \\
+    =\ &\text{filter}\cdot \text{signal} + \text{filter}\cdot\text{signal}
+\end{align*}
+For $h,h'\in \mathcal{A}$ and $s,s'\in\mathcal{M}$ and $\alpha$ in the base field, we also have 
+\begin{align*}
+    h\cdot (s + s') &= h\cdot s + h\cdot s'\\
+    h\cdot (\alpha s) &= \alpha (h\cdot s)\\
+    h'\cdot (h\cdot s) &= (h'\cdot h)\cdot s
+\end{align*}
+and filters can be operated on in various manners as well
+\begin{align*}
+    \text{filter} + \text{filter} &= \text{filter (parallel connection)}\\
+    \text{filter} \cdot \text{filter} &= \text{filter (series connection)}\\
+    \alpha\cdot\text{filter} &= \text{filter (amplification)}
+\end{align*}
+Beyond these properties, it must be mentioned that scalar multiplication of filters has left and right-distributivity and that multiplication by scalars is fully commutative with filter multiplication.
+At this point, we see that the structure of this system can be defined using formal mathematical language. Our set of filters forms an algebra, which we refer to as $\mathcal{A}$. Our vector space is somehow operated on by $\mathcal{A}$, meaning it must have an associated $\mathcal{A}$-module called $\mathcal{M}$. However, it must be clearly stated that $\mathcal{M}$ does not necessarily equal $V$ as the operation of $\mathcal{A}$ on $\mathcal{M}$ is not strictly defined as an operation on a vector space. Thus, we must also define a bijection between $V$ and $\mathcal{M}$, which we call $\Phi$.
 
-The most central concept in signal processing theory is the \textit{signal processing model}. This is defined as algebra $\mathcal{A}$ of filters, an $\mathcal{A}$-module $\mathcal{M}$ of signals, and a bijective mapping $\Psi$ from the vector space $V$ to the module $\mathcal{M}$ of signals. We often refer to this with an ordered triple $(\mathcal{A,M,\phi})$. We will see why this model is necessitated by first principles in the next section, but currently we 
+This is the central device in signal processing theory: a \textit{signal processing model} on a vector space $V$ consists of an ordered tuple $(\mathcal{A}, \mathcal{M}, \Phi)$ of algebraic objects as defined above. Through this model, we can exploit all of the mathematics of representation theory, harmonic analysis, and 
 
-\section{From First Principles}
+One may note that as soon as $\Phi$ is defined, we have also given definitions for all of $V, \mathcal{M}$ and $\mathcal{A}$, meaning a signal model can be tersely expressed as this bijective function $\Phi$.
+
+\subsection{Fourier Transforms}
+Given that we have now associated the signal space with a module, we can define Fourier transforms on our signal space. For an arbitrary $\mathcal{A}$-module $\mathcal{M}$, let $M$ denote the set of all irreducible $\mathcal{A}$-submodules. In the general case, we cannot be certain that $\mathcal{M}$ can be decomposed into $M$ but in the case that
+\begin{equation*}
+    \mathcal{M} = \bigoplus_{\omega\in M}\omega
+\end{equation*}
+we have the machinery to construct a Fourier Transform for our signal model. Once we choose bases for the irreducible representations of $\mathcal{M}$ allows us to coordinatize this transformation, thus offering a linear representation which we will call $\mathcal{F}$.
 
 \subsection{Shifts and the Z-Transform}
 
+Anyone who has focused on control systems or electronics in engineering is likely familiar with the concept of transfer functions on signals and filters represented in the z-domain. For example, the z-transform as it pertains to signals over infinite continuous spaces is often the bilateral Laplace transform
+\begin{equation*}
+    X(s) = \mathcal{L}\{x(t)\} = \int_{-\infty}^\infty x(t)e^{-st}
+\end{equation*}
+as we note, one of the convenient properties of such a transform is that the multiplication of signals and filters in the z-domain is simple polynomial multiplication. This property is often given without any other context, but here we can trivially justify why this is the case. 
+
+\section{Space and Time Signals}
+
+\section{Deriving Transforms from a Signal Model}
 
 \cite{AlgebraicSignalProcessing2006}
 Basic constructs in signal processing theory are filters, the z-transform, signals and the fourier transform. When we view them as they are classically taught, we see filters as linear operators and signals as a vector space, but this paper employs an algebraic perspective to show that these are more than 
@@ -37,24 +79,29 @@ Z-transform converts a discrete time signal  into a complex frequency-domain rep
 
 Define this notion of ``linear time invariance''
 
-Introduce transfer functions in a formal context.
-We see that transfer functions are polynomials in $z^{-n}$, where $n$ is the order of the filter. For example, a third-order Butterworth filter is
-\begin{equation*}
-    H(s) = \frac{G_0}{B_n(a)} \qquad a = \frac{\omega_n}{s}
-\end{equation*}
-and $B_n$ is the Butterworth polynomial defined for even numbers as
-\begin{equation*}
-    B_n(s) = \prod_{k=1}^\frac{n}{2}
-\end{equation*}
 
 However, simple observation shows that this space is not closed under multiplication, the operation corresponding with successive filter application. As such, many engineering conventions treat this as multiplication of polynomials modulo $z^{-n}-1$
 
 \subsection{Signal Shift Operator}
 Every signal model that has the shift invariance property has a commutative filter algebra $\mathcal{A}$.
-\section{Transformations between Algebras}
+\section{Further Considerations: Transformations between Algebras}
 Many times in engineering we encounter examples where a transformation may not transform to the same algebra and may not be invertible. For example, the process of downsampling a signal (commonly referred to as applying a decimating filter) applies a transformation that reduces the number of samples in a vector. This can be thought of as applying a filter with a large null space to a signal.
 
-\section{Practical Example: JPEG Image Compression}
+\section{Practical Example: Spectral Image Compression}
+Data compression is a large subfield of information theory that involves the process of encoding information to use fewer bits than an original representation. Data compression usually comes at the expense of additional computation, which is why the development of efficient algorithms to compress data is a central focus of this field. Compressing a signal into its irreducible representations is one technique that is commonly used to compress digital data of many formats such as audio or images. In this section we look at defining a signal model for digital image data and then develop efficient transforms to represent images in a 
+
+\subsection{Choosing an Encoding}
+There are a plethora of encodings for digital image data. Our goal here is to use an encoding that is uncompressed: one whose representation is as closest to the direct signal that one might encounter when processing raw image data from a sensor. We also want an encoding whose ``samples'' are easily accessible to a reading program. %TODO: better wording for this last sentence
+One family of encodings that stands out is the Netbpbm format, which encodes an image in a table of bytes $(0-255)$ in ASCII. It supports both grayscale and three-channel color representations.
+
+\subsection{Signal Model}
+
+\subsection{}
+\subsection{Demonstration}
+We first take an image and convert it into its uncompressed form, in this example, I have taken the following image and converted it into binary ppm:
+\begin{center}
+    \includegraphics[width=2in]{figures/lion.jpg}
+\end{center}
 \bibliographystyle{plain}
 \bibliography{paper}
 \end{document}
