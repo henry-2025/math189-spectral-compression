@@ -1,3 +1,8 @@
+/* Working and not working
+* image reading and writing
+* fft forward and backward transforms on 2d arrays of small datatypes seems to work
+* compression and decompression works on square images, issues with different geometries
+*/
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -45,6 +50,7 @@ int load_ppm_rgb(char *file_name, image_rgb *im, int *rows, int *cols)
         printf(stderr, "This file is not of type P6");
         return -1;
     }
+
 
     fscanf(file, "%d", &numCol);
     fscanf(file, "%d", &numRow);
@@ -196,9 +202,10 @@ void dct_compress(image_rgb *im, struct compressed_im *compressed, int rows, int
                         blue_in[j + i*8] = 255;
 
                     } else {
-                        red_in[j + i*8] = (*im)[c + j + (r+i)*cols].red;
-                        green_in[j + i*8] = (*im)[c + j + (r+i)*cols].green;
-                        blue_in[j + i*8] = (*im)[c + j + (r+i)*cols].blue;
+                        int pixel_index = j + c*8 + cols*8*r + cols*i;
+                        red_in[j + i*8] = (*im)[pixel_index].red;
+                        green_in[j + i*8] = (*im)[pixel_index].green;
+                        blue_in[j + i*8] = (*im)[pixel_index].blue;
                     }
                 }
             }
@@ -235,8 +242,13 @@ void dct_decompress(struct compressed_im *compressed, image_rgb *im, int rows, i
 
     for(int r = 0; r < comp_r; r++) {
         for(int c = 0; c < comp_c; c++) {
+            memset(red_in, 0, 64*sizeof(int16_t));
+            memset(blue_in, 0, 64*sizeof(int16_t));
+            memset(green_in, 0, 64*sizeof(int16_t));
+
             for(int i = 0; i < cell_size; i++) {
                 for (int j = 0; j < cell_size; j++) {
+
                     int compression_index =  (r*comp_c*cell_size*cell_size + i*comp_c*cell_size) + (c*cell_size + j);
 
                     red_in[i*8 + j] = compressed->red[compression_index];
@@ -256,9 +268,11 @@ void dct_decompress(struct compressed_im *compressed, image_rgb *im, int rows, i
                         continue;
 
                     } else {
-                        (*im)[c + j + (r+i)*cols].red = red_out[j + i*8];
-                        (*im)[c + j + (r+i)*cols].green = green_out[j + i*8];
-                        (*im)[c + j + (r+i)*cols].blue = blue_out[j + i*8];
+                        // seems like the indexing here is correct, no invalid writes
+                        int pixel_index = c*8 + j + cols*8*r + cols*i;
+                        (*im)[pixel_index].red = red_out[j + i*8];
+                        (*im)[pixel_index].green = green_out[j + i*8];
+                        (*im)[pixel_index].blue = blue_out[j + i*8];
                     }
                 }
             }
@@ -269,7 +283,7 @@ void dct_decompress(struct compressed_im *compressed, image_rgb *im, int rows, i
 
 
 void usage() {
-        printf("Usage:\t hpic -c INPUT OUTPUT COMPRESSION\t Input ppm binary encoding and output in the hpic compression format\n\t\t hpic -d INPUT OUTPUT Input hpic compression file, output decompressed ppm binary");
+        printf("Usage:\tjhpeg -c INPUT OUTPUT COMPRESSION\tInput ppm binary encoding and output in jhpeg compression format\n\tjhpeg -d INPUT OUTPUT\t\t\tInput jhpeg compression file, output decompressed ppm\n");
 }
 
 void delete_image(image_rgb *im) {
@@ -328,36 +342,19 @@ void decompress_jhpeg(char *input_path, char *output_path) {
 }
 
 
-// int main(int argc, char* argv[])
-// {
-//     if (argc != 2 && argc != 3) {
-//         usage();
-//         return 0;
-//     }
-//     else if (strcmp(argv[1], "-c") == 0) {
-//         char *input_path = argv[2];
-//         char *output_path = argv[3];
-//         float compression = atof(argv[4]);
-//         return compress_ppm(input_path, output_path, compression);
-//     } else if (strcmp(argv[1], "-d") == 0) {
-//         char *input_path = argv[2];
-//         char *output_path = argv[3];
-
-//         return decompress_hpic(input_path, output_path);
-//     } else {
-//         usage();
-//     }
-
-
-//     return 0;
-// }
-
-// test main
-int main(int argc, char* argv[]) {
-    //testing image reading, seems to work
-    // testing image writing, also seems to work
-    // fft forward and backward functions both work with casting
-    compress_ppm("../figures/b.ppm", "./b.jhpeg", 6);
-
-    decompress_jhpeg("./b.jhpeg", "./b.ppm");
+int main(int argc, char* argv[])
+{
+    if (argc == 5 && strcmp(argv[1], "-c") == 0) {
+        char *input_path = argv[2];
+        char *output_path = argv[3];
+        uint8_t compression = (uint8_t)atoi(argv[4]);
+        compress_ppm(input_path, output_path, compression);
+    } else if (argc == 4 && strcmp(argv[1], "-d") == 0) {
+        char *input_path = argv[2];
+        char *output_path = argv[3];
+        decompress_jhpeg(input_path, output_path);
+    } else {
+        usage();
+    }
+    return 0;
 }
