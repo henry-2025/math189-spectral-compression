@@ -26,7 +26,7 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-    In this paper, we explore constructs in image processing through the work of Markus P\"uschel on algebraic signal processing theory. His main objective was to introduce well-established concepts in signal processing in terms of a comprehensive algebraic theory. Here, we do much of the same, in fact a significant portion of this paper is devoted to reviewing essential ideas in his paper. We draw connections between abstract algebra and representation theory and the core concepts learned in many systems engineering classes. In my own effort to make this work original, I will explore several applied cases not covered in P\"uschel's work and design an image compression pipeline that makes use of several of P\"uschel's discussion points.
+    In this paper, we explore constructs in image processing through the work of Markus P\"uschel on algebraic signal processing theory. His main objective was to introduce well-established concepts in signal processing as a comprehensive algebraic theory. Here, we do much of the same, in fact a significant portion of this paper is devoted to reviewing essential ideas in his paper. We draw connections between abstract algebra and representation theory and the core concepts learned in many systems engineering classes. In my own effort to make this work original, I will explore several applied cases not covered in P\"uschel's work and design an image compression pipeline that makes use of several of P\"uschel's discussion points.
 \end{abstract}
 \section{Introduction}
 In nearly all fields of the applied sciences, we interact with the broad definition of ``signal processing''. It is a term traditionally used in electrical engineering but has now found use in a wide range of other fields including image processing, wireless communication, financial analysis, and machine learning.
@@ -35,10 +35,10 @@ In the broadest sense, signal processing deals with functions defined on sets, o
 
 To one with experience in one of the fields of signal processing, reading this last sentence should have been fairly straightforward, drawing on some assumptions. If one had contextualized this as the processing of complex digital sensor data, they might have assumed that $x$ and $y$ live in the vector space $\mathbb{C}^n$ over the field $\mathbb{C}$ and that the expression $r_1x + r_2y$ is simply the vector sum of $x$ and $y$ scaled by $r_1$ and $r_2$. Reading this last sentence from an abstract algebra perspective should have seemed slightly awkward, however. Since we have not given an algebraic foundation for these objects $A, x, y, r_1,$ and $r_2$, we have no conception of how the interact with one another, how we might represent these objects linearly, and what a signal generally represents. The instinct of the mathematician is to establish a comprehensive theory that characterizes features common to all signal processing contexts. This is exactly what Markus P\"uschel has done in his work on algebraic signal processing theory\cite{AlgebraicSignalProcessing2006}.
 
-One might question the practical value of an algebraic exploration of already well-established science. In this inquiry, we find many justifications that apply far beyond the mathematics alone. For example, an engineer who has significant experience in one field of signal processing may find a natural means of recognizing parallels in an entirely different field. It also becomes clear that several tasks in processing research that are seemingly the product of ingenious creativity are actually quite procedural. The design of fast transform algorithms, for example, can be as simple as observing the symmetry structure of an underlying signal module.
+One might question the practical value of an algebraic exploration of already well-established science. In this inquiry, we find many justifications that apply far beyond the mathematics alone. For example, an engineer who has significant experience in one field of signal processing may find a natural means of recognizing parallels in an entirely different field. It also becomes clear that signal processing optimizations that are seemingly the product of ingenious creativity are actually quite procedural in their construction. The design of fast fourier transform algorithms, for example, can be as simple as observing the symmetry structure of an underlying signal module.
 
-The structure of this paper will first explore some of the foundational concepts introduced in the P\"uschel paper, which is primarily an expository section. In this section, we also consider some ideas that were not addressed in this work and potential extensions for P\"uschel's signal processing theory. We then move on to a practical application of constructing a signal model for images and a fast transform to be used in an image compression program.
-\section{From First Principles}
+The structure of this paper will first explore the foundational concepts of algebraic signal processing, which is primarily an expository section. In this section, we also consider some ideas that were not addressed in this work and potential extensions for P\"uschel's signal processing theory. We then move on to a practical application of constructing a signal model for images and a fast transform to be used in an image compression program.
+\section{Designing the Signal Model}
 In standard signal processing theory, signals live in a vector space like $\mathbb{C}^n$ over the base field, which gives the direct operations of signal addition and ``scalar multiplication''. This vector space structure also endows us with several other notions like dimension, basis, linear mappings and subspaces. We then encounter objects called filters, linear operators that act on signals to produce new signals. The operation of a filter on a signal is a different operation than the sum of two signals. We use the multiplication operation to represent this action of a filter on a signal
 \begin{equation*}
     \text{filter}\cdot\text{signal} = \text{signal}
@@ -102,10 +102,9 @@ Every signal model that has the shift invariance property has a commutative filt
 Many times in engineering we encounter examples where a transformation may not transform to the same algebra and may not be invertible. For example, the process of downsampling a signal (commonly referred to as applying a decimating filter) applies a transformation that reduces the number of samples in a vector. This can be thought of as applying a filter with a large null space to a signal.
 
 \section{Practical Example: Spectral Image Compression}
-Data compression is a large subfield of information theory that involves the process of encoding information to use fewer bits than an original representation. Compressing data usually comes at the expense of additional computation, which is why the development of efficient compression algorithms is a central focus of this field. We focus specifically on lossy compression, in which information is lost through the compression processes (ie. the original data cannot be reconstructed from the compressed data) but the majority of useful information is preserved. One common lossy compression technique involves decomposing some signal into its irreducible representations and then discarding the less-meaningful representations. In this section we look at defining a signal model for digital image data and then develop a lossy compression technique based on an efficient transform derived from this signal model. There is also a source code accompaniment for this section which can be found \href{https://github.com/henry-2025/math189-spectral-compression}{here}.
-
+Data compression is a large subfield of information theory that involves the process of encoding information to use fewer bits than an original representation. Compressing data usually comes at the expense of additional computation, which is why the development of efficient compression algorithms is a central focus of this field. We focus specifically on lossy compression, in which information the original data cannot be reconstructed from the compressed data but the majority of useful information is preserved through the compression process. One common lossy compression technique involves decomposing some signal into its irreducible representations and then discarding the less-meaningful representations. In this section we look at defining a signal model for digital image data and then develop a lossy compression technique based on an efficient transform derived from this signal model.
 \subsection{Choosing an Encoding}
-There are a plethora of encodings for digital image data. Our goal here is to convert between two formats, one compressed and the other uncompressed. The uncompressed format is closest to the representation of raw sensor signal data while the compressed format is like one that we might wish to store on the hard drive of a computer. One family of encodings that stands out is the Netbpbm format, which encodes an image in a byte table corresponding directly to the pixel indices in the displayed image. For example, using the using red green and blue channel ordering for three-tuples, the following pixel array and color block are equivalent representations
+There are a plethora of encodings for digital image data. Our goal here is to convert between two formats, one compressed and the other uncompressed. The uncompressed format is closest to the representation of how we might want to interpret the image visually while the compressed format does not have to visually interpretable. We can readily apply some change of basis or additional encoding that satisfy its primary objective of being small. One family of uncompressed encodings that stands out is the Netpbm format, which encodes an image in a byte table corresponding directly to the pixel indices in the displayed image. In this example, we use the RGB channel ordering for three-tuples of bytes. The following pixel array and color block are equivalent representations
 
 \begin{center}
     $\begin{bmatrix}
@@ -121,51 +120,56 @@ In the discussion of shift operators, we found that spatial shifts are a necessa
 \begin{equation*}
     q \diamond s_{x,y} = \frac{1}{4}(s_{x-1,y} + s_{x+1,y} + s_{x,y-1} + s_{x,y+1})
 \end{equation*}
-However, we soon realize see that this model would be flawed because we cannot reach all points in a 2d array from a single spatial operator. Instead, we define two spatial shifts, $q_x$ and $q_y$ and assign their propagations to each of the two dimensions such that
+However, we soon realize see that this model would be flawed because it is not a generating element of the group. That is, given a single point in our 2D spatial signal module, we cannot reach all other points by applying this one shift operator. Instead, we define two spatial shifts, $q_x$ and $q_y$ and assign their propagations to each of the two dimensions such that
 \begin{align*}
     q_x \diamond s_{x,y} &= \frac{1}{2}(s_{x-1,y} + s_{x+1,y})\\
     q_y \diamond s_{x,y} &= \frac{1}{2}(s_{x,y-1} + s_{x,y+1})
 \end{align*}
-Recalling the general module form for signal models with shift operators, we have defined $\mathcal{M}_x = \mathbb{C}[x]/p(x)$ to be a regular module with the basis $b_x = (p_0(x), \dots, p_{n-1}(x))$. If $x$ is the 1-dimensional shift operator for this signal model, we can naturally extend this to an $n$-dimensional analog with other shift operators $x_0, x_1, \dots, x_{n-1}$ in the module
-\begin{equation}
-    \mathcal{M}_{x_0, \dots, x_{n-1}} = \mathbb{C}[x_0, \dots, x_{n-1}]/\langle p(x_0), \dots, p(x_{n-1})\rangle
-\end{equation}
-Which has a basis that is the cartesian product of all bases of all the 1-dimensional submodules: $b_{x_0, \dots, x_{n-1}} = b_{x_0}\times \cdots \times x_{x_{n-1}}$. We shift our focus back to the 2-dimensional signal models pertaining to our processing of images. Suppose $x$ and $y$ are our spatial operators over the two axes and each has a dimension corresponding to the number of pixels in that axis, $k$ and $l$, respectively. Then we can extend the 1-dimensional signal model on the basis $(p_0, \dots, p_{n-1})$ to
+Recalling the general module form for signal models with shift operators, we have defined $\mathcal{M}_x = \mathbb{C}[x]/p(x)$ to be a regular module with the basis $b_x = (p_0(x), \dots, p_{n-1}(x))$. If $x$ is the 1-dimensional shift operator for this signal model, we can naturally extend this to an $n$-dimensional analog by introducing new shift operators $x_0, x_1, \dots, x_{n-1}$ in the module as we have explained above. Assuming we are using the regular module, this means that the module and algebra defined over the polynomials on $x_0, x_1, \dots, x_{n-1}$:
+\begin{align}
+    \mathcal{A}_{x_0,\dots, x_{n-1}} &= \mathcal{M}_{x_0, \dots, x_{n-1}} = \nonumber\\
+    &\mathbb{C}[x_0, \dots, x_{n-1}]/\langle p(x_0), \dots, p(x_{n-1})\rangle\label{eq:module}
+\end{align}
+Which has a basis that is the cartesian product of all bases of all the 1-dimensional submodules: $b_{x_0, \dots, x_{n-1}} = b_{x_0}\times \cdots \times b_{x_{n-1}}$. We shift our focus back to the 2-dimensional signal models pertaining to our processing of images. Suppose $x$ and $y$ are our spatial operators over the two axes, then our module definition follows that of \eqref{eq:module} with polynomials over $x$ and $y$.
+
+We now have the facility to define the bijection of our signal model. Assume that the maximum degree of each $x$ and $y$ is $n$ (corresponding to $V$ being composed of $n\times n$ matrices). We define $p_0, \dots, p_{n-1}$ to be the polynomials of the delta functions for each of the 1D submodules of $M_{x,y}$. Then we can extend the 1D signal model on the basis $(p_0, \dots, p_{n-1})$ to
 \begin{equation*}
     \Phi(\mathbf{s}) = \sum_{0\leq k,l <n}s_{k,l}p_kp_l
 \end{equation*}
-We now take a detour into the formal definition of a tensor product of the two modules $\mathcal{M}_x$ and $\mathcal{M}_y$ and the associated algebra $\mathcal{A}_{x,y}$ thus has the same property:
+This completes the basic definition of the signal model. We observe that using the usual definitions of the 1D signal models for $\mathcal{M}_x$ and $\mathcal{M}_y$, there exists a bijection between $\mathcal{M}_{x,y}$ and $\mathcal{M}_x\times \mathcal{M}_y$, which means that $\mathcal{M}_{x,y}$ is a \textit{tensor product} of $\mathcal{M}_x$ and $\mathcal{M}_y$. Given that we have defined $\mathcal{M}_{x,y}$ as a regular module, this statement also holds for $\mathcal{A}_{x,y}$:
 \begin{align*}
     \mathcal{M}_{x,y} &= \mathcal{M}_x\otimes\mathcal{M}_y\\
     \mathcal{A}_{x,y} &= \mathcal{A}_x\otimes\mathcal{A}_y
 \end{align*}
-This observation gives a valuable insight for the construction of a fast fourier transform in this signal model. Because we are working with a signal whose
+This observation gives a valuable insight for the construction of a fast Fourier transform in this signal model. The decomposition of a $\mathcal{M}_x\times \mathcal{M}_y$ into its irreducible submodules can be written as the following
 \begin{align*}
     \Delta : \mathbb{C}[x]&/p(x)\times\mathbb{C}[y]/p(y)\to\\
     &\bigoplus_{0\leq k,l<n}\mathbb{C}[x]/(x - \alpha_k)\times \mathbb{C}[y](y - \alpha_{l})
 \end{align*}
-This We already know that $\mathcal{M}_x$ and $\mathcal{M}_y$ are modules representing
+Which means that Fourier transform on the 2D signal space can be decomposed into 1D Fourier transforms along the axes. If $\mathcal{F}$ is such a 1D Fourier transform, then we define $\mathcal{F}_{2D} = \mathcal{F}\times \mathcal{F}$, which we can interpret as an operator that executes the following steps:
+\begin{enumerate}
+    \item Apply $\mathcal{F}$ to each $(s_{r,0}, s_{r,1}, \dots, s_{r,n-1})$ for $0\leq r < n$. That is, apply $\mathcal{F}$ to each row of $\mathbf{s}$. We refer to the output of this as the matrix $[f_{k,l}]$
+    \item Apply $\mathcal{F}$ te each $(f_{0,r}, f_{1,r}, \dots, f_{n-1,r})$ for $0\leq r < n$. That is, apply $\mathcal{F}$ to each column of $[f_{k,l}]$. The output of this stage will be the matrix $[g_{k,l}]$. This is the output of our 2D FFT
+\end{enumerate}
+We choose $\mathcal{F}$ to be DCT-type 2 for ability to convert purely real signals to a real basis where the submodules are ordered by low-to-high frequency. We will see why this choice is convenient in the later portions of our compression pipeline. Having performed $2n$ instances of DCT-type 2 and assuming DCT-type 2 is an $\mathcal{O}(n\log{n})$ operation, we perform the 2D fourier transform in $\mathcal{O}(n^2\log{n})$ operations. Deriving an inverse operation, we simply apply $\mathcal{F}^{-1}$ in the reverse order as defined for $\mathcal{F}\times\mathcal{F}$. DCT-type 2's inverse is defined as DCT-type 3, meaning these are the two essential subroutines that we will use in our algorithm.
 
 The design of a fast 1D DCT goes beyond my understanding, but P\"uschel and other authors have published papers outlining algebraic approaches to its derivation\cite{puschel2003cooley,fastdct1988}. Instead, we will use one of many existing libraries with fast DCT-type 2 and DCT-type 3 algorithms. The trouble is that most operate exclusively on floating-point numbers which means that the available transforms are not written for our vector space in $(\mathbb{Z}/256\mathbb{Z})^{n^2}$. We address this by reinterpreting our vector space in $\mathbb{Q}^n$, performing all of our calculations as rational floating-point numbers, and then casting back down to the original vector space. Evidently, this is a cause for a large computation overhead and will almost certainly make our compression system slower than current state-of-the-art systems. The importance of matching a signal model to the data being processed is thus emphasized again, though I did not have time to address this issue in my project.
-
 \subsection{Algorithm Design}
-%TODO: explain the layout of the matrix in terms of frequency
-Having designed a two-dimensional DCT that operates in $O(n^2\log{n})$ on floating-point $n\times n$ matrices, we shift our attention to designing a signal processing pipeline for image compression. There are two fundamental ideas behind most DCT-based image compression techniques: (1) at most resolutions, lower-frequency components occupy a bulk of the signal energy and perhaps consequentially, (2) higher-frequency components are less important to the characteristics of the image. Compression algorithms will find a means of stripping these high-frequency components out of the representation of their signal. Some encodings like JPEG do this in a nearly lossless manner by applying a normalization to these frequency components called quantization\cite{JPEG1992}. Quantization reduces all but the most powerful high-frequency components to zero leaving a frequency matrix that is very sparse in the lower-right region. The JPEG encoding employs a technique called ``zigzag scanning'' to encode these redundancies in a manner that will likely encode most of the zeros contiguously as shown in \ref{fig:zigzag}.
+Having designed a two-dimensional DCT that operates in $O(n^2\log{n})$ on floating-point $n\times n$ matrices, we shift our attention to designing a signal processing pipeline for image compression. There are two fundamental ideas behind most DCT-based image compression techniques: (1) at most resolutions, lower-frequency components occupy a bulk of the signal energy and perhaps consequentially, (2) higher-frequency components are less important to the characteristics of the image. Compression algorithms will find a means of stripping these high-frequency components out of the representation of their signal. Some encodings like JPEG do this in a nearly lossless manner\cite{JPEG1992}. First, it applies a normalization to these frequency components called quantization, reducing all but the most powerful high-frequency components to zero. The output of the quantization stage leaves a matrix that is very sparse in the lower-right region. The JPEG encoding employs a technique called ``zigzag scanning'' to encode these redundancies in a manner that tries to maximize contiguous redundancies as shown in \ref{fig:zigzag}.
 \begin{figure}[h]
     \begin{center}
         \includegraphics[width=2in]{figures/jpeg_zigzag.png}
     \end{center}
-    \caption{The zigzag scanning used in JPEG intuitively maximizes the number of contiguous encountered in the frequency matrix}
+    \caption{The zigzag scanning used in JPEG intuitively maximizes the number of contiguous zeros encountered in the frequency matrix}
     \label{fig:zigzag}
 \end{figure}
-In this compression scheme, we take a much simpler approach by simply taking the output matrix of the DCT type-2 and discarding the indices $k,l > m$ for $m \geq 1$ thereby constructing a low-rank approximation of the frequency matrix. This compression scheme is bound to have a higher data-loss rate as it simply ignores information that might be outside of this frame of the matrix. Relying on the assumption that most of the signal energy is concentrated in the lower spatial frequencies of the signal, this method should be a much better approximation than an arbitrary selection of $m\times m$ matrix elements.
+In this compression scheme, we take a much simpler approach by simply taking the output matrix of the 2D DCT type-2 and discarding the indices $k,l > m$ for $m \geq 1$ thereby constructing a low-rank approximation of the frequency matrix. This compression scheme is bound to have a higher data-loss rate as it simply ignores information that might be outside of this frame of the matrix. Relying on the assumption that most of the signal energy is concentrated in the lower spatial frequencies of the signal, this method should be a much better approximation than an arbitrary selection of $m\times m$ matrix elements.
 
 One might be tempted to take this scheme and apply the transformation and rank reduction to the entire image in one two-dimensional DCT type-2. This method has two major flaws, the first being that our designed DCT only operates on square matrices while images can be any rectangular shape. We would have to either crop every image to a square or derive some type of padding scheme to extend the image bounds to a square. The second is that an unnecessary asymptotic complexity degree is used as our algorithm is $\mathcal{O}(n^2\log{n})$.
 
-Instead, we can make our DCT a constant size and apply it to sub-matrices of the image. Our asymptotic runtime complexity is now $\mathcal{O}(n^2)$ and we have also somewhat solved the square image problem by reducing the proportions of the image that need to be padded or cropped. One question
+Instead, we can make our DCT a constant size and apply it to a disassembly of sub-matrices of the original signal. Our asymptotic runtime complexity is now $\mathcal{O}(n^2)$ and we have also somewhat solved the square image problem by reducing the proportions of the image that need to be padded or cropped. One question still remains regarding the size of these disassembled submatrices. We choose $8\times 8$ with no particular mathematical grounding, only noting that JPEG also chooses this size based on hardware constraints and empirical testing \cite{JPEG1992}.
 
-The described process can be summarized in the following
-
+The described process can be summarized in the following flow graphs with decompression being the regular construction of inverse operations:
 \tikzstyle{startstop} = [rectangle, rounded corners, minimum width=2cm, minimum height=0.7cm,text centered, draw=black, fill=red!30]
 \tikzstyle{filter} = [rectangle, minimum width=2cm, minimum height=0.7cm,text centered, draw=black, fill=green!50]
 \tikzstyle{arrow} = [thick,->,>=stealth]
@@ -179,7 +183,10 @@ The described process can be summarized in the following
         \node (reduce) [filter, left of=dct, xshift=-2cm] {Rank Reduce};
         \node (write) [startstop, below of=reduce, xshift=1cm] {Write Encoding};
 
-        \node (read) [startstop, below of=write, yshift=-0.5cm] {Read Encoding};
+        \node[draw] (compression) [above of=image, xshift=1cm] {Compression Pipeline};
+        \node[draw] (decompression) [below of=compression, yshift=-4cm]{Decompression Pipeline};
+
+        \node (read) [startstop, below of=decompression] {Read Encoding};
         \node (augment) [filter, below of=read, xshift=-2cm] {Augment Matrices};
         \node (idct) [filter, right of=augment, xshift=2.5cm] {DCT III 2D};
         \node (reassemble) [filter, below of=idct] {Reassemble};
@@ -195,26 +202,39 @@ The described process can be summarized in the following
         \draw [arrow] (reassemble) -- (im);
     \end{tikzpicture}
 \end{center}
-I implemented this using fftw3 floating point dct transformations and a command-line program written in C. It achieves most of the functionality that I was hoping for with a few issues with rectangular dimensioned images. 
-We first take an image and convert it into its uncompressed form, in this example, I have taken the following image and converted it into binary ppm:
+
+\subsection{Implementation and Results}
+I implemented this using FFTW3 floating-point DCT transformations and a command-line program written in C. The source code can be found \href{https://github.com/henry-2025/math189-spectral-compression}{here}. The encoding, named JHPeg, achieves most of the functionality that I was hoping for with a few issues with rectangular dimensioned images. As I anticipated, the use of floating-point math and type conversions makes this program run about 25 times slower than current JPEG encoders. However, the resulting files are comparable in size with a compression rate that retains somewhat acceptable image quality as shown in the following table:
+\begin{center}
+    \begin{tabular}{c|c c c}
+        & JPEG & JHPeg & Uncompressed\\
+        \hline
+        Encoding Time & 0.12s & 3.10s & N/A\\
+        File Size & 281K & 338K & 3.6M
+    \end{tabular}
+\end{center}
+It is also helpful to observe the visual effects of low-rank approximation. Since the compression scheme is more unrefined than JPEG's we expect to see more inaccuracy in our image outputs. In \ref{fig:compression_outputs}, we observe the ``artifacts'' that are produced in the low-rank approximation images versus a state-of-the-art encoding..
+
 \begin{figure}[h]
     \centering
-    \begin{subfigure}[m]{0.3\textwidth}
+    \begin{subfigure}[m]{0.5\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{figures/lion_compressed.jpg}
-        \caption{A high-resolution image with 75\% compression applied}
+        \includegraphics[width=\textwidth]{figures/lion_compare.jpg}
+        \caption{A $960\times 960$ image with 75\% compression applied on the left(we have halved the ranks of the DCT matrices).}
         \label{fig:lion}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[b]{0.3\textwidth}
+    \begin{subfigure}[b]{0.5\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{figures/b_compressed.jpg}
-        \caption{A lower-resolution image with ``sharp'' features. Artifacts in the 75\% compression are more evident.}
+        \includegraphics[width=\textwidth]{figures/b_compare.jpg}
+        \caption{A lower-resolution image with ``sharp'' features. Artifacts in the 75\% compression are more evident as seen in the compressed image on the left.}
         \label{fig:letter_b}
     \end{subfigure}
-    \label{fig:compression_outputs}
     \caption{Two different outputs of the compression algorithm that demonstrate its performance.}
+    \label{fig:compression_outputs}
 \end{figure}
+\subsection{Conclusion}
+Developing the compression scheme was enlightening because it tied together many of the insights from P\"uschel's work in a practical application that I already have a lot of appreciation for. He states that the task of deriving fast fourier transform algorithm from basic principles is greatly simplified through an algebraic approach. While I do believe this statement, designing an fft from the ground up was still too challenging a task to tackle in a single project. I think P\"uschel means that these understandings lead to systematic constructions of fast algorithms rather than their discovery by chance. This was certainly evident when I was able to reinterpret existing algorithms and apply them to new tasks.
 \bibliographystyle{plain}
 \bibliography{paper}
 \end{document}
