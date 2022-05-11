@@ -9,6 +9,7 @@
 \usepackage{subcaption}
 \usepackage{hyperref}
 \usepackage{tikz}
+\usepackage{amsthm}
 
 \usetikzlibrary{shapes.geometric, arrows}
 
@@ -19,6 +20,7 @@
     urlcolor=cyan,
     pdfpagemode=FullScreen,
 }
+\newtheorem{theorem}{Theorem}[section]
 
 \author{Henry Pick, MATH189J}
 \title{Algebraic Signal Processing Theory in Image Processing}
@@ -79,11 +81,11 @@ The usual extension of this finite sum to a series applies to infinite sample se
 \begin{equation*}
     q\diamond t_i = t_{i+1} 
 \end{equation*}
-Surprisingly, this operation alone allows us to define a large portion of our signal model. If we let $q = x$ and $t_0 = 1$, then the recurrence $t_{n+1} = xt_n$ is solved by $t_n = x^n$. This then reduces \eqref{eq:signal1} to a sum
+This operation alone allows us to define a large portion of our signal model. If we let $q = x$ and $t_0 = 1$, then the recurrence $t_{n+1} = xt_n$ is solved by $t_n = x^n$. This then reduces \eqref{eq:signal1} to a sum
 \begin{equation*}
     \sum_{k}s_kx^k
 \end{equation*}
-In general, for any time-sequence model (finite or infinite), the above equation defines our signal model bijection $\Phi(\mathbf{s})$ while placing certain constraints on $V$. It does not, however strictly define $\mathbf{M}$ until we can specify the boundary condition. For our purposes we consider a finite dimensional $V$ in $\mathbb{C}^n$, such that $\Phi$ produces polynomials of degree at most $n-1$. The problem now arises that $\mathbb{C}[x]$ for finite length could not be a module in any algebra as it is not closed under multiplication nor is any other finite length polynomial set. For example, $x^{n-1},x\in \mathbb{C}[x]$ but $x^{n-1}x = x^n\not\in \mathbb{C}[x]$. Thus arises the need for a \textit{boundary condition}, simply a means of expressing $x^n$ as a polynomial of degree at most $n-1$. A boundary condition takes the most general form
+In general, for any time-sequence model (finite or infinite), the above equation defines our signal model bijection $\Phi(\mathbf{s})$ while placing certain constraints on $V$. It does not, however strictly define $\mathcal{M}$ until we can specify the boundary condition. For our purposes we consider a finite dimensional $V$ in $\mathbb{C}^n$, such that $\Phi$ produces polynomials of degree at most $n-1$. The problem now arises that $\mathbb{C}[x]$ for finite length could not be a module in any algebra as it is not closed under multiplication nor is any other finite length polynomial set. For example, $x^{n-1},x\in \mathbb{C}[x]$ but $x^{n-1}x = x^n\not\in \mathbb{C}[x]$. Thus arises the need for a \textit{boundary condition}, simply a means of expressing $x^n$ as a polynomial of degree at most $n-1$. A boundary condition takes the most general form
 \begin{equation}
     x^n = r(x) = \sum_{k=0}^{n-1}\beta_kx^k
 \end{equation}
@@ -91,64 +93,117 @@ As a result, polynomials $x^{k+n}$ are equivalent to some $r_k(x)\mod{(x^n-r(x))
 
 Our definition of a boundary condition and a shift operator have now allowed us to generally define $\Phi$ and $\mathcal{M}$ in our signal model and we will soon show how they offer suggestions for $\mathcal{A}$. However, we must first focus the choice of $r(x)$, as it determines several additional important properties about the signal model:
 \begin{enumerate}
-    \item If $x|r(x)$ then $x$ divides $(x^n - r(x))$ and thus $x$ is not invertible $\mod{(x^n - r(x))}$. Thus the operators $x^{-1}, x^{-2}, \dots$ do not exist and we say that the past is inaccessible in our model
+    \item If $x|r(x)$ then $x$ divides $(x^n - r(x))$ and thus $x$ is not invertible $\mod{(x^n - r(x))}$. The operators $x^{-1}, x^{-2}, \dots$ do not exist and we say that the past is inaccessible in our model
     \item $x\nmid r(x)$ then $x^{-1}$ does exist, in particular $x^{-1} = -\frac{1}{\beta_0}(\beta_1 + \beta_2x + \cdots +\beta_{n-1}x^{n-2} - x^{n-1})$ and this is the machinery used to access the past up to $x^{1-n}$.
 \end{enumerate}
-This ``accessing of the past'' might seem to violate the concept of time shift which processes in only one direction. Note that the existence of $x^{-1}$ does not imply that moving from $t_0$ to $t_{-1}$ is possible, it only means that $t_{-1}$ exists and behaves as would any other time index such that $q\diamond t_{-1} = t_0$. This notion becomes clearer when we discuss filtering shortly. It finally stands to remark at the fact that our choice of $r(x)$ determines what happens at \textit{both} the left and right boundaries of polynomials in $\mathcal{M}$.
+This ``accessing of the past'' might seem to violate the concept of time shift which processes in only one direction. Note that the existence of $x^{-1}$ does not imply the action of moving from $t_0$ to $t_{-1}$, it only means that $t_{-1}$ exists and behaves as would any other time index such that $q\diamond t_{-1} = t_0$. This notion becomes clearer when we discuss filtering shortly. It finally stands to remark at the fact that our choice of $r(x)$ determines what happens at \textit{both} the left and right boundaries of polynomials in $\mathcal{M}$.
 
-We now consider the conventional notion of \textit{shift-invariance} in signal processing and this to determine one particular candidate for $\mathcal{A}$. An algebra of filters $\mathcal{A}$ is shift-invariant if for $h\in \mathcal{A}$ and a signal $s$ in the associated $\mathcal{A}$-module $\mathcal{M}$, the shift operator commutes with $h$:
+We now consider the conventional notion of \textit{shift-invariance} in signal processing and use this to determine one particular candidate for $\mathcal{A}$. An algebra of filters $\mathcal{A}$ is shift-invariant if for $h\in \mathcal{A}$ and a signal $s$ in the associated $\mathcal{A}$-module $\mathcal{M}$, the shift operator commutes with $h$:
 \begin{equation*}
     h(xs) = xh(s) \iff hx = xh
 \end{equation*}
-Where $xs$ is the action of applying $x$ to each time index in $s$. Noting this property that $\mathcal{A}$ must commute under $x$, a very natural choice is to assign $\mathcal{A} = \mathcal{M}$. Indeed, the polynomial algebras are a valid candidate for the filter space of time-invariant filters. They have the additional convenient property that they allow for a very easy algebraic interpretation of a finite impulse response (FIR) filter. For an example, suppose we have some filter $h = 1 + x\in \mathcal{A} = \mathbb{C}[x]/(x^{9} - 1)$. In this case, applying $h$ to a signal $s\in \mathbb{M} = \mathcal{A}$ is equivalent to saying.
+Where $xs$ is the action of applying $x$ to each time index in $s$. Noting this property that $\mathcal{A}$ must commute under $x$, a very natural choice is to assign $\mathcal{A} = \mathcal{M}$. Indeed, the polynomial algebras are a valid candidate for the filter space of time-invariant filters. They have the additional convenient property that they allow for a very easy algebraic interpretation of a finite impulse response (FIR) filter. Each sample in the output sequence of an FIR filter is a linear combination of samples in the input sequence over sime time frame. For an example, suppose we have some filter $h = 1 + x\in \mathcal{A} = \mathbb{C}[x]/(x^{9} - 1)$. In this case, applying $h$ to a signal $s\in \mathbb{M} = \mathcal{A}$ is equivalent to saying.
 \begin{align*}
     s' &= hs\\
     s'_k &= \begin{cases}
-        s_0 - s_9 & k = 0\\
-        2s_9 + s_8 & k = 9\\
+        s_0 + s_9 & k = 0\\
         s_{k-1} + s_k & \text{otherwise}       
     \end{cases}
 \end{align*}
-which demonstrates the FIR behavior that one might expect, especially in the third case.
+which demonstrates the FIR behavior that one might expect, especially in the second case. We also observe concretely that our defined boundary condition $r(x) = 1$ simply loops this signal back onto itself, which seems like a familiar construction. In fact, this boundary condition choice makes $\mathbb{C}[x]/(x^n - r(x))$ isomorphic to the group algebra of cyclic groups $\mathbb{C}[C_n]$ which we have dealt with many times in Harmonic Analysis on Finite Groups.
 
-We finally come back to this notion of access to the past in terms of filters. When $x^{-1}, \dots, x^{1-n}$ exist, then filters can also draw on information that exists in the opposite time direction. While we have defined this as the ``past'' in our signal module, note that when $x^{-1}$ exists, filters can be characterized as non-causal. That is they have sight into impulses from both time directions. Causal filters, on the other hand, only have sight into the past and we thus delineate between these two in the algebraic sense based on $x^{-1}$'s existence.
+We finally come back to this notion of access to the past in terms of filters. When $x^{-1}, \dots, x^{1-n}$ exist, then filters can also draw on information that exists in the opposite time direction. While we have defined this as the ``past'' in our signal module, realize that the direction of time is inverted in the filter algebra. That is, $x^{-1}$ grants a filter access to future time indices relative to $t_0$ making them \textit{non-causal}. Causal filters, on the other hand, only have sight into the past and we thus delineate between these two in the algebraic sense based on $x^{-1}$'s existence.
 
 \subsection{Fourier Transforms}
 Given that we have now associated the signal space with a module, the construction of a Fourier transforms on the signal space can be carried out using the algebraic definitions encountered in class. For an arbitrary $\mathcal{A}$-module $\mathcal{M}$, let $M$ denote the set of all irreducible $\mathcal{A}$-submodules. In the general case, we cannot be certain that $\mathcal{M}$ can be decomposed into $M$ but in the case that it can we know that
 \begin{equation}
     \mathcal{M} = \bigoplus_{\mathcal{M}_k\in M}\mathcal{M}_k\label{eq:decomp}
 \end{equation}
-we have the machinery to construct a Fourier Transform for our signal model. Once we choose a basis $b_0, b_1, \dots, b_n$ for the irreducible representations of $\mathcal{M}$ we are able to coordinatize this transformation by projecting each of these basis elements into the submodules as shown in \eqref{eq:decomp}. The linear representation of this transformation is then offered by the matrix formed by each of these coordinate decompositions $\mathcal{F}$.
+we have the machinery to construct a Fourier Transform for our signal model. Once we choose a basis $b_0, b_1, \dots, b_n$ for the irreducible representations of $\mathcal{M}$ we are able to coordinatize this transformation by projecting each of these basis elements into the submodules as shown in \eqref{eq:decomp}. The linear representation of this transformation is then offered by the matrix $\mathcal{F}$ formed by each of these coordinate decompositions as column vectors.
 
+A natural example of this can be demonstrated with a specific instance of the time-shift model that we were working with. We select a special boundary condition where $r(x) = 1$ and thus our polynomial algebra can be expressed as the following
+\begin{align}
+    \mathbb{C}[x]&/(x^{n}-1) \nonumber\\
+    &= \mathbb{C}[x]/(x - 1)(x-\omega)\cdots(x-\omega^{n})\label{eq:factoring}
+\end{align}
+where $\omega$ is the primitive $n$th root of unity $e^{2\pi i/n}$. As an aside, we consider the Chinese remainder theorem for polynomials which states that if $p(x)\in \mathbb{C}[x]$ and $p(x) = r(x)s(x)$, then
+\begin{equation}
+    \mathbb{C}[x]/p(x)\cong\mathbb{C}[x]/r(x)\oplus\mathbb{C}[x]/s(x)\label{eq:crt}
+\end{equation}
+Applying \eqref{eq:crt} inductively to \eqref{eq:factoring} allows us to say that $\mathbb{C}[x]/(x^n-1)$ decomposes into
+\begin{equation*}
+    \mathbb{C}[x]/(x-1)\oplus\mathbb{C}[x]/(x-\omega)\oplus\cdots \oplus\mathbb{C}[x]/(x-\omega^{n-1})
+\end{equation*}
+And as each of these is a degree 1 polynomial module, they must all be irreducible and thus form a \textit{spectrum} to be used in our Fourier transform.
 
+In the future, we will assume that $(x^n - r(x))$ is \textit{decomposable} and can be decomposed into the product of degree 1 polynomials, all with multiplicity 1. This gives the above expression a general form
+\begin{align}
+    \mathbb{C}[x]&/(x^n-r(x)) = \mathbb{C}[x]/(x-\alpha_0)\nonumber\\
+    &\oplus\mathbb{C}[x]/(x-\alpha_1)\oplus\cdots \oplus\mathbb{C}[x]/(x-\alpha^{n-1})\label{eq:factoring}
+\end{align}
 
-\subsection{Shifts and the Z-Transform}
-
+From this, the construction of the standard DFT matrix on $n$-sample data in the cyclic group becomes the procedural task of expressing all of the basis elements $(1, x, \dots, x^{n-1})$ in terms of the direct sum spectrum in \eqref{eq:factoring}. This gives us the usual DFT matrix $\text{DFT} = [\omega^{ij}]_{0\leq i, j < n}$.
+\subsection{Z-Transform and the Convolution Theorem}
 Anyone who has focused on control systems or electronics in engineering is likely familiar with the concept of transfer functions on signals and filters represented in the z-domain. For example, the z-transform as it pertains to signals over infinite continuous spaces is often the bilateral Laplace transform
 \begin{equation*}
     X(s) = \mathcal{L}\{x(t)\} = \int_{-\infty}^\infty x(t)e^{-st}
 \end{equation*}
-as we note, one of the convenient properties of such a transform is that the multiplication of signals and filters in the z-domain is simple polynomial multiplication. This property is often given without any other context, but here we can trivially justify why this is the case.
+Up until this point, we have simply discussed the z-transform as a means of expressing $\mathbf{s}\in V$ as an element of the signal module $\mathcal{M}$. Many engineers note that the above transform allows one to express signals that live in $V = \mathbb{C}^n$ in the same closed-form continuous functions as the filter algebra. It conveniently frames filter application and as the multiplication of closed-form functions in z-domain. The insight that the our choice of module creates properties that have practical use is another reassuring justification for the framing of signal processing through algebraic theory.
 
-\section{Space and Time Signals}
+In many cases, however, there is not significant choice over the exact algebras and modules that are used. The module can sometimes make the process of filtering tedious or it may not inherently lead to a convenient method of filter application. For example, working with the polynomial algebras of degree $n$ means that one must multiply $\mathcal{O}(n^2)$ elements when applying a filter to a signal. Quadratic scaling for such operations is certainly not ideal.
 
-\section{Deriving Transforms from a Signal Model}
+We then call upon representation theory to attempt to express filters in terms of bases that make multiplication simpler. We first assume that our module can be decomposed into a series of irreducible submodules as in \eqref{eq:decomp} and then perform such a decomposition on a filter or signal according to \eqref{eq:factoring}
+\begin{equation*}
+    \mathbf{s} = \sum_{k=0}^{n-1}\alpha_k(s_k)
+\end{equation*}
+Given that each of these terms is a projection into an irreducible submodule of $\mathbb{C}[x]/(x^n-r(x))$, representation theory gives us the insight that these can a all be represented as diagonal matrices in $\mathbb{C}^1$. The constructed representation of $\mathbf{s}$ in this basis is then a diagonal matrix in $\mathbb{C}^n$, which establishes the \textit{convolution theorem}.
+\begin{theorem}[Convolution]
+    \label{thm:convolution}
+    Let $s\in \mathcal{M}$ and $h\in \mathcal{A}$ and be a signal and filter $\text{mod} (x^n-a)$. Let $\phi$ be a representation of $\mathcal{A}$. An arbitrary fourier transform $\mathcal{F}$ has the property
+    \begin{align*}
+        h\cdot s\mod{(x^n-r(x))} \equiv \phi(h) \cdot \mathbf{s}\\
+        \equiv (D\mathcal{F})^{-1}((\mathcal{F}\mathbf{h}) \odot (\mathcal{F}\mathbf{s}))
+    \end{align*} 
+    Where $\mathbf{h}$ and $\mathbf{s}$ are the coefficient vectors of $h$ and $s$ with respect to the common basis $b$ of $\mathcal{A}$ an $\mathcal{M}$. $\odot$ is pointwise multiplication of the diagonals of two matrices. The matrix $D$ is diagonal and is determined by our chosen basis $b$. The P\"uschel paper goes into better detail on why this diagonal matrix is necessary. 
+\end{theorem}
+The obvious takeaway from \ref{thm:convolution} is that when the direct sum decomposition properties of $\mathcal{M}$ and $\mathcal{A}$ are satisfied, filter application takes $\mathcal{O}(n)$ operations, a drastic speedup over the arbitrary case.
+\section{A Brief Exploration of Space Signals}
+The signal models that we have realized so far have been time models, but many applications in signal processing cannot be modeled by this oriented time axis. Space, for example, has no intrinsic direction and is certainly the most common deviation from the time model in signal processing. We consider the vector space $V = \mathbb{C}^\mathbb{Z}$ and define similar space indices $t_n$ and a space shift operator $q$. To develop an intuition for how the space operator should behave when applied to $t_n$ we consider a propagation outward from a point in space. Where time propagates in one direction, a signal propagating through space from a point should travel in all directions. The space model then looks like the following
+\begin{equation*}
+    q\diamond t_n = (t_{n+1} + t_{n-1})/2
+\end{equation*}
+for $n\in \mathbb{Z}$. It is perhaps more convenient to visualize how this relates to the intuition in \ref{fig:space}.
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=2.5in]{figures/space_shift.png}
+        \caption{The space shift operator for a single shift. Source: \cite{AlgebraicSignalProcessing2006}}
+        \label{fig:space}
+    \end{center}
+\end{figure}
+A natural extension from $q$ to the $k$-fold shift operators $q_k$ is the following
+\begin{equation*}
+    q_k\diamond t_n = (t_{n+k} + t_{n-k})/2
+\end{equation*}
+Here, we can observe two important differences between the space and time signal models. Most notably, $q_k \neq q^k$ as one can verify by applying $q^2$ to $t_n$. Additionally, $q_k = q_{-k}$ which reflects the fact that there is no directionality in the space shift. We find that instead, the shift operators are the Chebyshev polynomials of the first kind defined by the recurrence $T_k(q) = 2qT_k(q) - T_{k-1}(q)$
 
-\cite{AlgebraicSignalProcessing2006}
-Basic constructs in signal processing theory are filters, the z-transform, signals and the fourier transform. When we view them as they are classically taught, we see filters as linear operators and signals as a vector space, but this paper employs an algebraic perspective to show that these are more than
+\begin{theorem}[Space Shift Operator]
+    The $k$-fold space shift operator is given by $T_k(q)$
+    \begin{proof}
+        By induction on $k$, let $q_0 = 1$ and $q_1 = q$. We have
+        \begin{align*}
+            q_{k+1}\diamond t_n &= (t_{n+k+1} + t_{n-k-1})/2\\
+            &= (t_{n+k+1} + t_{n+k-1} + t_{n-k+1} + t_{n-k-1})/2\\
+            &\quad- (t_{n+k-1} + t_{n-k+1})/2\\
+            &= 2q\diamond(t_{n+k} + t_{n-k})/2\\
+            &\quad- (t_{n+k-1} + t_{n-k+1})/2\\
+            &= (2qq_k - q_{k-1})\diamond t_n
+        \end{align*}
+        which is indeed the recurrence relation associated with Chebyshev Polynomials of the first kind.
+    \end{proof}
+\end{theorem}
+Deriving the module and algebra, the boundary conditions, and the Fourier transform associated with space models follows in almost identical fashion to the construction in time models. The process is slightly more involved and results in a much larger space of transforms and boundary conditions than were observed with time signals. In fact, we find that there are 16 types of finite bijections $\Phi$ that arise from our choice of boundary conditions. There are then 16 associated Fourier transforms known as the discrete cosine and sine transforms that apply to each of these bijections\cite{AlgebraicSignalProcessing2006}.
 
-Z-transform converts a discrete time signal  into a complex frequency-domain representation, which can be thought of as the discrete time analogue of the Laplace transform. The
-
-Define this notion of ``linear time invariance''
-
-
-However, simple observation shows that this space is not closed under multiplication, the operation corresponding with successive filter application. As such, many engineering conventions treat this as multiplication of polynomials modulo $z^{-n}-1$
-
-\subsection{Signal Shift Operator}
-Every signal model that has the shift invariance property has a commutative filter algebra $\mathcal{A}$.
-\section{Further Considerations: Transformations between Algebras}
-Many times in engineering we encounter examples where a transformation may not transform to the same algebra and may not be invertible. For example, the process of downsampling a signal (commonly referred to as applying a decimating filter) applies a transformation that reduces the number of samples in a vector. This can be thought of as applying a filter with a large null space to a signal.
-
+In-depth derivation of each of these is beyond the scope of this paper, but a central conclusion is that the discrete trigonometric transforms are the applicable Fourier transforms to spatial signals. We will apply this insight in the following section.
 \section{Practical Example: Spectral Image Compression}
 Data compression is a large subfield of information theory that involves the process of encoding information to use fewer bits than an original representation. Compressing data usually comes at the expense of additional computation, which is why the development of efficient compression algorithms is a central focus of this field. We focus specifically on lossy compression, in which information the original data cannot be reconstructed from the compressed data but the majority of useful information is preserved through the compression process. One common lossy compression technique involves decomposing some signal into its irreducible representations and then discarding the less-meaningful representations. In this section we look at defining a signal model for digital image data and then develop a lossy compression technique based on an efficient transform derived from this signal model.
 \subsection{Choosing an Encoding}
@@ -215,7 +270,7 @@ In this compression scheme, we take a much simpler approach by simply taking the
 
 One might be tempted to take this scheme and apply the transformation and rank reduction to the entire image in one two-dimensional DCT type-2. This method has two major flaws, the first being that our designed DCT only operates on square matrices while images can be any rectangular shape. We would have to either crop every image to a square or derive some type of padding scheme to extend the image bounds to a square. The second is that an unnecessary asymptotic complexity degree is used as our algorithm is $\mathcal{O}(n^2\log{n})$.
 
-Instead, we can make our DCT a constant size and apply it to a disassembly of sub-matrices of the original signal. Our asymptotic runtime complexity is now $\mathcal{O}(n^2)$ and we have also somewhat solved the square image problem by reducing the proportions of the image that need to be padded or cropped. One question still remains regarding the size of these disassembled submatrices. We choose $8\times 8$ with no particular mathematical grounding, only noting that JPEG also chooses this size based on hardware constraints and empirical testing \cite{JPEG1992}.
+Instead, we can make our DCT a constant size and apply it to a disassembly of sub-matrices of the original signal. Our asymptotic runtime complexity is now $\mathcal{O}(n^2)$ and we have also somewhat solved the square image problem by reducing the proportions of the image that need to be padded or cropped. One question still remains regarding the size of these disassembled sub-matrices. We choose $8\times 8$ with no particular mathematical grounding, only noting that JPEG also chooses this size based on hardware constraints and empirical testing \cite{JPEG1992}.
 
 The described process can be summarized in the following flow graphs with decompression being the regular construction of inverse operations:
 \tikzstyle{startstop} = [rectangle, rounded corners, minimum width=2cm, minimum height=0.7cm,text centered, draw=black, fill=red!30]
