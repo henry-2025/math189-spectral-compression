@@ -31,48 +31,96 @@
 \section{Introduction}
 In nearly all fields of the applied sciences, we interact with the broad definition of ``signal processing''. It is a term traditionally used in electrical engineering but has now found use in a wide range of other fields including image processing, wireless communication, financial analysis, and machine learning.
 
-In the broadest sense, signal processing deals with functions defined on sets, often times countable sets in the context of digital computing. We also have a set of functions, commonly referred to as ``filters'' that transform these signals. In this paper, we focus on linear signal processing, which means that this set of functions operates on signals \textit{linearly}. That is, given a transformation $A$, signals $x$ and $y$, and scalar multiples $r_1$ and $r_2$ it holds that $A(r_1x + r_2y) = r_1A(x) + r_2A(y)$, which is still a signal.
+Signal processing deals with functions defined on sets, often times countable sets in the context of digital computing. We also have a set of functions, commonly referred to as ``filters'' that transform these signals. In this paper, we focus on linear signal processing, which means that this set of functions operates on signals \textit{linearly}. That is, given a transformation $A$, signals $x$ and $y$, and scalar multiples $r_1$ and $r_2$ it holds that $A(r_1x + r_2y) = r_1A(x) + r_2A(y)$, which is still a signal.
 
-To one with experience in one of the fields of signal processing, reading this last sentence should have been fairly straightforward, drawing on some assumptions. If one had contextualized this as the processing of complex digital sensor data, they might have assumed that $x$ and $y$ live in the vector space $\mathbb{C}^n$ over the field $\mathbb{C}$ and that the expression $r_1x + r_2y$ is simply the vector sum of $x$ and $y$ scaled by $r_1$ and $r_2$. Reading this last sentence from an abstract algebra perspective should have seemed slightly awkward, however. Since we have not given an algebraic foundation for these objects $A, x, y, r_1,$ and $r_2$, we have no conception of how the interact with one another, how we might represent these objects linearly, and what a signal generally represents. The instinct of the mathematician is to establish a comprehensive theory that characterizes features common to all signal processing contexts. This is exactly what Markus P\"uschel has done in his work on algebraic signal processing theory\cite{AlgebraicSignalProcessing2006}.
+Some with experience in one of the fields of signal processing may find this last sentence fairly straightforward, drawing on some assumptions. If one had contextualized this as the processing of complex digital sensor data, they might have assumed that $x$ and $y$ live in the vector space $\mathbb{C}^n$ over the field $\mathbb{C}$ and that the expression $r_1x + r_2y$ is simply the vector sum of $x$ and $y$ scaled by $r_1$ and $r_2$. Reading this last sentence from an abstract algebra perspective should have seemed slightly awkward, however. Since we have not given an algebraic foundation for these objects $A, x, y, r_1,$ and $r_2$, we have no conception of how the interact with one another, how we might represent these objects linearly, and what a signal generally represents. The instinct of the mathematician is to establish a comprehensive theory that characterizes features common to all signal processing contexts. This is exactly what Markus P\"uschel has done in his work on algebraic signal processing theory\cite{AlgebraicSignalProcessing2006}.
 
-One might question the practical value of an algebraic exploration of already well-established science. In this inquiry, we find many justifications that apply far beyond the mathematics alone. For example, an engineer who has significant experience in one field of signal processing may find a natural means of recognizing parallels in an entirely different field. It also becomes clear that signal processing optimizations that are seemingly the product of ingenious creativity are actually quite procedural in their construction. The design of fast fourier transform algorithms, for example, can be as simple as observing the symmetry structure of an underlying signal module.
+One might question the practical value of an algebraic exploration of an already well-established science. In this inquiry, we find many justifications that apply far beyond the mathematics alone. For example, an engineer who has significant experience in one field of signal processing may find a natural means of recognizing parallels in an entirely different field. It also becomes clear that signal processing optimizations which are seemingly the product of ingenious creativity are actually quite procedural in their construction. The design of fast fourier transform algorithms, for example, can be as simple as observing the symmetry structure of an underlying signal module.
 
-The structure of this paper will first explore the foundational concepts of algebraic signal processing, which is primarily an expository section. In this section, we also consider some ideas that were not addressed in this work and potential extensions for P\"uschel's signal processing theory. We then move on to a practical application of constructing a signal model for images and a fast transform to be used in an image compression program.
+This paper will first explore the foundational concepts of algebraic signal processing, which is primarily an expository section. We also consider some ideas that were not addressed in this work and potential extensions for P\"uschel's signal processing theory. We then move on to a practical application of constructing a signal model for images and a fast transform to be used in an image compression program.
 \section{Designing the Signal Model}
-In standard signal processing theory, signals live in a vector space like $\mathbb{C}^n$ over the base field, which gives the direct operations of signal addition and ``scalar multiplication''. This vector space structure also endows us with several other notions like dimension, basis, linear mappings and subspaces. We then encounter objects called filters, linear operators that act on signals to produce new signals. The operation of a filter on a signal is a different operation than the sum of two signals. We use the multiplication operation to represent this action of a filter on a signal
+\subsection{Definition}
+In standard signal processing theory, signals live in a vector space such as $\mathbb{C}^n$ over a base field, which gives the direct operations of signal addition and ``scalar multiplication''. This vector space structure also endows us with several other notions like dimension, basis, linear mappings and subspaces which all interpreted in their unique signal processing contexts. We then encounter objects called filters, linear operators that act on signals to produce new signals. The operation of a filter on a signal is a different operation than the sum of two signals. We use $\cdot$ to represent this action of a filter on a signal. Note that this is not a commutative operator as there is no overarching practice of applying signals to filters.
 \begin{equation*}
     \text{filter}\cdot\text{signal} = \text{signal}
 \end{equation*}
-filtering also obeys the laws of distributivity
+Filtering also obeys the laws of distributivity
 \begin{align*}
     &\text{filter}\cdot (\text{signal} + \text{signal}) \\
     =\ &\text{filter}\cdot \text{signal} + \text{filter}\cdot\text{signal}
 \end{align*}
-For $h,h'\in \mathcal{A}$ and $s,s'\in\mathcal{M}$ and $\alpha$ in the base field, we also have
+Let us define the sets of all filters $\mathcal{A}$ and all signals $\mathcal{M}$ in an arbitrary signal processing context. For $h,h'\in \mathcal{A}$ and $s,s'\in\mathcal{M}$ and $\alpha$ in the base field, we also have
 \begin{align*}
     h\cdot (s + s') &= h\cdot s + h\cdot s'\\
     h\cdot (\alpha s) &= \alpha (h\cdot s)\\
     h'\cdot (h\cdot s) &= (h'\cdot h)\cdot s
 \end{align*}
-and filters can be operated on in various manners as well
+Filters can also operate one another and can be scaled in the base field. A parallel filter application and a series filter application are the two different configurations in which this can happen:
 \begin{align*}
     \text{filter} + \text{filter} &= \text{filter (parallel connection)}\\
     \text{filter} \cdot \text{filter} &= \text{filter (series connection)}\\
     \alpha\cdot\text{filter} &= \text{filter (amplification)}
 \end{align*}
-Beyond these properties, it must be mentioned that scalar multiplication of filters has left and right-distributivity and that multiplication by scalars is fully commutative with filter multiplication.
-At this point, we see that the structure of this system can be defined using formal mathematical language. Our set of filters forms an algebra, which we refer to as $\mathcal{A}$. Our vector space is somehow operated on by $\mathcal{A}$, meaning it must have an associated $\mathcal{A}$-module called $\mathcal{M}$. However, it must be clearly stated that $\mathcal{M}$ does not necessarily equal $V$ as the operation of $\mathcal{A}$ on $\mathcal{M}$ is not strictly defined as an operation on a vector space. Thus, we must also define a bijection between $V$ and $\mathcal{M}$, which we call $\Phi$.
+It must also be mentioned that scalar multiplication of filters has left and right-distributivity and that multiplication by scalars is fully commutative with filter multiplication.
 
-This is the central device in signal processing theory: a \textit{signal processing model} on a vector space $V$ consists of an ordered tuple $(\mathcal{A}, \mathcal{M}, \Phi)$ of algebraic objects as defined above. Through this model, we can exploit all of the mathematics of representation theory, harmonic analysis, and
+We now see that $\mathcal{A}$ and $\mathcal{M}$ can be defined using formal mathematical language. Our set of filters forms an algebra over the base field. The set of signals is an associated $\mathcal{A}$-module. However, it must be clearly stated that $\mathcal{M}$ does not necessarily equal $V$ as the operation of $\mathcal{A}$ on $\mathcal{M}$ is not strictly defined as an operation on a vector space. Thus, we must also define a bijection between $V$ and $\mathcal{M}$, which we call $\Phi$.
+
+This is the central device in signal processing theory: a \textit{signal processing model} on a vector space $V$ consists of an ordered tuple $(\mathcal{A}, \mathcal{M}, \Phi)$ of algebraic objects as defined above. Through this model, we can exploit representation theory, harmonic analysis, and abstract algebra to explore the mathematics of signal processing.
 
 One may note that as soon as $\Phi$ is defined, we have also given definitions for all of $V, \mathcal{M}$ and $\mathcal{A}$, meaning a signal model can be tersely expressed as this bijective function $\Phi$.
+\subsection{Model Derivation}
+In this section, we show that $\mathcal{A}$ and $\mathcal{M}$ can be defined entirely when given just a \textit{shift operator} and a \textit{boundary condition}. Signal processing applications typically associate their vector spaces with \textit{samples}, entries in each vector that have an association with some measurable dimension. The two most common examples of these dimensions are time and space, where one might imagine sampling sunlight intensity throughout the day or .
+
+We first focus on these time-dimension signal models. In such a model, each sample in a vector $\mathbf{s} = [s_0, s_1, \cdots, s_n]^T$ has an associated time index $t_i$, which offers an interpretation of our signal as
+\begin{equation}
+    \sum_{k=0}^ns_kt_k\label{eq:signal1}
+\end{equation}
+The usual extension of this finite sum to a series applies to infinite sample sequences. Consider the fact that time has an inherent direction, such that we can only progress forward. For a sequence of time indices $t_0, t_1, \dots$, the only reasonable progression through the sequence is from $t_0$ to $t_1$ to $t_2$ and so forth. In this manner, we consider a shift operator $q$ to be a means of progressing through time indices by operating on them. $q$ applies itself to a time index $t_i$ through $\diamond$ such that 
+\begin{equation*}
+    q\diamond t_i = t_{i+1} 
+\end{equation*}
+Surprisingly, this operation alone allows us to define a large portion of our signal model. If we let $q = x$ and $t_0 = 1$, then the recurrence $t_{n+1} = xt_n$ is solved by $t_n = x^n$. This then reduces \eqref{eq:signal1} to a sum
+\begin{equation*}
+    \sum_{k}s_kx^k
+\end{equation*}
+In general, for any time-sequence model (finite or infinite), the above equation defines our signal model bijection $\Phi(\mathbf{s})$ while placing certain constraints on $V$. It does not, however strictly define $\mathbf{M}$ until we can specify the boundary condition. For our purposes we consider a finite dimensional $V$ in $\mathbb{C}^n$, such that $\Phi$ produces polynomials of degree at most $n-1$. The problem now arises that $\mathbb{C}[x]$ for finite length could not be a module in any algebra as it is not closed under multiplication nor is any other finite length polynomial set. For example, $x^{n-1},x\in \mathbb{C}[x]$ but $x^{n-1}x = x^n\not\in \mathbb{C}[x]$. Thus arises the need for a \textit{boundary condition}, simply a means of expressing $x^n$ as a polynomial of degree at most $n-1$. A boundary condition takes the most general form
+\begin{equation}
+    x^n = r(x) = \sum_{k=0}^{n-1}\beta_kx^k
+\end{equation}
+As a result, polynomials $x^{k+n}$ are equivalent to some $r_k(x)\mod{(x^n-r(x))}$, which tells us that instead of living in $\mathbb{C}[x]$, our polynomials live in $\mathbb{C}[x]/(x^n-r(x))$. Indeed, the operation of multiplication $\mod{(x^n-r(x))}$ is closed and thus can form a module.
+
+Our definition of a boundary condition and a shift operator have now allowed us to generally define $\Phi$ and $\mathcal{M}$ in our signal model and we will soon show how they offer suggestions for $\mathcal{A}$. However, we must first focus the choice of $r(x)$, as it determines several additional important properties about the signal model:
+\begin{enumerate}
+    \item If $x|r(x)$ then $x$ divides $(x^n - r(x))$ and thus $x$ is not invertible $\mod{(x^n - r(x))}$. Thus the operators $x^{-1}, x^{-2}, \dots$ do not exist and we say that the past is inaccessible in our model
+    \item $x\nmid r(x)$ then $x^{-1}$ does exist, in particular $x^{-1} = -\frac{1}{\beta_0}(\beta_1 + \beta_2x + \cdots +\beta_{n-1}x^{n-2} - x^{n-1})$ and this is the machinery used to access the past up to $x^{1-n}$.
+\end{enumerate}
+This ``accessing of the past'' might seem to violate the concept of time shift which processes in only one direction. Note that the existence of $x^{-1}$ does not imply that moving from $t_0$ to $t_{-1}$ is possible, it only means that $t_{-1}$ exists and behaves as would any other time index such that $q\diamond t_{-1} = t_0$. This notion becomes clearer when we discuss filtering shortly. It finally stands to remark at the fact that our choice of $r(x)$ determines what happens at \textit{both} the left and right boundaries of polynomials in $\mathcal{M}$.
+
+We now consider the conventional notion of \textit{shift-invariance} in signal processing and this to determine one particular candidate for $\mathcal{A}$. An algebra of filters $\mathcal{A}$ is shift-invariant if for $h\in \mathcal{A}$ and a signal $s$ in the associated $\mathcal{A}$-module $\mathcal{M}$, the shift operator commutes with $h$:
+\begin{equation*}
+    h(xs) = xh(s) \iff hx = xh
+\end{equation*}
+Where $xs$ is the action of applying $x$ to each time index in $s$. Noting this property that $\mathcal{A}$ must commute under $x$, a very natural choice is to assign $\mathcal{A} = \mathcal{M}$. Indeed, the polynomial algebras are a valid candidate for the filter space of time-invariant filters. They have the additional convenient property that they allow for a very easy algebraic interpretation of a finite impulse response (FIR) filter. For an example, suppose we have some filter $h = 1 + x\in \mathcal{A} = \mathbb{C}[x]/(x^{9} - 1)$. In this case, applying $h$ to a signal $s\in \mathbb{M} = \mathcal{A}$ is equivalent to saying.
+\begin{align*}
+    s' &= hs\\
+    s'_k &= \begin{cases}
+        s_0 - s_9 & k = 0\\
+        2s_9 + s_8 & k = 9\\
+        s_{k-1} + s_k & \text{otherwise}       
+    \end{cases}
+\end{align*}
+which demonstrates the FIR behavior that one might expect, especially in the third case.
+
+We finally come back to this notion of access to the past in terms of filters. When $x^{-1}, \dots, x^{1-n}$ exist, then filters can also draw on information that exists in the opposite time direction. While we have defined this as the ``past'' in our signal module, note that when $x^{-1}$ exists, filters can be characterized as non-causal. That is they have sight into impulses from both time directions. Causal filters, on the other hand, only have sight into the past and we thus delineate between these two in the algebraic sense based on $x^{-1}$'s existence.
 
 \subsection{Fourier Transforms}
-Given that we have now associated the signal space with a module, we can define Fourier transforms on our signal space. For an arbitrary $\mathcal{A}$-module $\mathcal{M}$, let $M$ denote the set of all irreducible $\mathcal{A}$-submodules. In the general case, we cannot be certain that $\mathcal{M}$ can be decomposed into $M$ but in the case that
-\begin{equation*}
-    \mathcal{M} = \bigoplus_{\omega\in M}\omega
-\end{equation*}
-we have the machinery to construct a Fourier Transform for our signal model. Once we choose bases for the irreducible representations of $\mathcal{M}$ allows us to coordinatize this transformation, thus offering a linear representation which we will call $\mathcal{F}$.
+Given that we have now associated the signal space with a module, the construction of a Fourier transforms on the signal space can be carried out using the algebraic definitions encountered in class. For an arbitrary $\mathcal{A}$-module $\mathcal{M}$, let $M$ denote the set of all irreducible $\mathcal{A}$-submodules. In the general case, we cannot be certain that $\mathcal{M}$ can be decomposed into $M$ but in the case that it can we know that
+\begin{equation}
+    \mathcal{M} = \bigoplus_{\mathcal{M}_k\in M}\mathcal{M}_k\label{eq:decomp}
+\end{equation}
+we have the machinery to construct a Fourier Transform for our signal model. Once we choose a basis $b_0, b_1, \dots, b_n$ for the irreducible representations of $\mathcal{M}$ we are able to coordinatize this transformation by projecting each of these basis elements into the submodules as shown in \eqref{eq:decomp}. The linear representation of this transformation is then offered by the matrix formed by each of these coordinate decompositions $\mathcal{F}$.
+
+
 
 \subsection{Shifts and the Z-Transform}
 
@@ -204,7 +252,7 @@ The described process can be summarized in the following flow graphs with decomp
 \end{center}
 
 \subsection{Implementation and Results}
-I implemented this using FFTW3 floating-point DCT transformations and a command-line program written in C. The source code can be found \href{https://github.com/henry-2025/math189-spectral-compression}{here}. The encoding, named JHPeg, achieves most of the functionality that I was hoping for with a few issues with rectangular dimensioned images. As I anticipated, the use of floating-point math and type conversions makes this program run about 25 times slower than current JPEG encoders. However, the resulting files are comparable in size with a compression rate that retains somewhat acceptable image quality as shown in the following table:
+I implemented this using FFTW3 floating-point DCT transformations and a command-line program written in C. The source code can be found \href{https://github.com/henry-2025/math189-spectral-compression}{here}. The encoding, named JHPeg, achieves most of the functionality that I was hoping for with a few issues with rectangular-dimensioned images. As I anticipated, the use of floating-point math and type conversions makes this program run about 25 times slower than current JPEG encoders. However, the resulting files are comparable in size with a compression rate that retains somewhat acceptable image quality as shown in the following table:
 \begin{center}
     \begin{tabular}{c|c c c}
         & JPEG & JHPeg & Uncompressed\\
@@ -213,7 +261,7 @@ I implemented this using FFTW3 floating-point DCT transformations and a command-
         File Size & 281K & 338K & 3.6M
     \end{tabular}
 \end{center}
-It is also helpful to observe the visual effects of low-rank approximation. Since the compression scheme is more unrefined than JPEG's we expect to see more inaccuracy in our image outputs. In \ref{fig:compression_outputs}, we observe the ``artifacts'' that are produced in the low-rank approximation images versus a state-of-the-art encoding..
+It is also helpful to observe the visual effects of low-rank approximation. Since the compression scheme is more unrefined than JPEG's we expect to see more inaccuracy in our image outputs. In \ref{fig:compression_outputs}, we observe these ``artifacts'' that are produced in the low-rank approximation images versus a state-of-the-art encoding..
 
 \begin{figure}[h]
     \centering
@@ -227,7 +275,7 @@ It is also helpful to observe the visual effects of low-rank approximation. Sinc
     \begin{subfigure}[b]{0.5\textwidth}
         \centering
         \includegraphics[width=\textwidth]{figures/b_compare.jpg}
-        \caption{A lower-resolution image with ``sharp'' features. Artifacts in the 75\% compression are more evident as seen in the compressed image on the left.}
+        \caption{A $256\times 256$ image with sharp edge features. Artifacts in the 75\% compression are more evident as seen in the compressed image on the left.}
         \label{fig:letter_b}
     \end{subfigure}
     \caption{Two different outputs of the compression algorithm that demonstrate its performance.}
